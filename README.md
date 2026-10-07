@@ -11,6 +11,18 @@ La DIRESA La Libertad no puede responder, con datos verificables, preguntas bás
 ## Hipótesis
 Si se automatiza la validación e ingesta de datos mediante procedimientos almacenados y triggers, se segrega el acceso por roles con auditoría activa conforme a la Ley N.° 29733, y se construye un modelo dimensional con procesos ETL confiables sobre el cual operan un cubo OLAP y un dashboard de indicadores, entonces la DIRESA La Libertad puede transformar reportes manuales propensos a error en decisiones de gestión de salud basadas en datos consistentes, trazables, auditables y analizables en tiempo real — con un modelo de arquitectura que, evaluado mediante Apache Spark, resulta además escalable frente al volumen creciente de datos del sector salud peruano.
 
+## Datos utilizados
+
+### Dataset 1: Registro Nacional de Entidades Prestadoras de Servicios de Salud (RENIPRESS)
+- **Fuente**: Plataforma Nacional de Datos Abiertos (datosabiertos.gob.pe)
+- **URL**: https://www.datosabiertos.gob.pe/dataset/registro-nacional-de-entidades-prestadoras-de-servicios-de-salud-renipress
+- **Fecha de descarga**: 20 de septiembre de 2026
+
+### Dataset 2: Data de Atenciones del año 2024, Semestre 2
+- **Fuente**: Plataforma Nacional de Datos Abiertos (datosabiertos.gob.pe)
+- **URL**: https://www.datosabiertos.gob.pe/dataset/datos-de-atenciones-realizadas-los-asegurados-sis/resource/e9aff38a-f046-4415-9520
+- **Fecha de descarga**: 20 de septiembre de 2026
+
 ## Estructura del repositorio
 [Explicar brevemente cada carpeta, 1 línea por carpeta]
 
