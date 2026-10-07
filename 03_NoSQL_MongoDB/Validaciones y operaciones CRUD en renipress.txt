@@ -1,0 +1,208 @@
+// Validación de códigos IPRESS duplicados: esta fue una de las consultas que ejecutamos directamente en mongosh
+db.renipress.aggregate([
+  {
+    $group: {
+      _id: "$codigo_ipress",
+      cantidad: {
+        $sum: 1
+      }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+
+      total_codigos: {
+        $sum: 1
+      },
+
+      codigos_duplicados: {
+        $sum: {
+          $cond: [
+            {
+              $gt: [
+                "$cantidad",
+                1
+              ]
+            },
+            1,
+            0
+          ]
+        }
+      }
+    }
+  }
+])
+
+// Validación de relación Atenciones ↔ RENIPRESS
+db.atenciones_salud.aggregate([
+  {
+    $lookup: {
+      from: "renipress",
+      localField: "establecimiento.codigo_ipress",
+      foreignField: "codigo_ipress",
+      as: "datos_renipress"
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      total_atenciones: { $sum: 1 },
+
+      atenciones_con_renipress: {
+        $sum: {
+          $cond: [
+            { $gt: [{ $size: "$datos_renipress" }, 0] },
+            1,
+            0
+          ]
+        }
+      },
+
+      atenciones_sin_renipress: {
+        $sum: {
+          $cond: [
+            { $eq: [{ $size: "$datos_renipress" }, 0] },
+            1,
+            0
+          ]
+        }
+      }
+    }
+  }
+])
+
+//Consulta para integrar ambas colecciones
+db.atenciones_salud.aggregate([
+  {
+    $lookup: {
+      from: "renipress",
+      localField: "establecimiento.codigo_ipress",
+      foreignField: "codigo_ipress",
+      as: "renipress"
+    }
+  },
+  {
+    $unwind: "$renipress"
+  },
+  {
+    $group: {
+      _id: {
+        codigo_ipress: "$establecimiento.codigo_ipress",
+        nombre: "$renipress.nombre",
+        categoria: "$renipress.categoria"
+      },
+      total_atenciones: {
+        $sum: "$cantidad_atenciones"
+      }
+    }
+  },
+  {
+    $sort: {
+      total_atenciones: -1
+    }
+  },
+  {
+    $limit: 10
+  }
+])
+
+//Consulta por categoría RENIPRESS
+db.atenciones_salud.aggregate([
+  {
+    $lookup: {
+      from: "renipress",
+      localField: "establecimiento.codigo_ipress",
+      foreignField: "codigo_ipress",
+      as: "renipress"
+    }
+  },
+  {
+    $unwind: "$renipress"
+  },
+  {
+    $group: {
+      _id: "$renipress.categoria",
+      total_atenciones: {
+        $sum: "$cantidad_atenciones"
+      },
+      establecimientos: {
+        $addToSet: "$establecimiento.codigo_ipress"
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      categoria: "$_id",
+      total_atenciones: 1,
+      cantidad_establecimientos: {
+        $size: "$establecimientos"
+      }
+    }
+  },
+  {
+    $sort: {
+      total_atenciones: -1
+    }
+  }
+])
+
+
+//Operaciones CRUD 
+
+//CREATE 
+
+db.renipress.insertOne({
+  _id: "PRUEBA_CRUD_001",
+  codigo_ipress: "PRUEBA001",
+  nombre: "IPRESS DE PRUEBA CRUD",
+  institucion: "PRUEBA",
+  clasificacion: "PRUEBA",
+  tipo_establecimiento: "PRUEBA",
+  ubicacion: {
+    departamento: "LA LIBERTAD",
+    provincia: "TRUJILLO",
+    distrito: "TRUJILLO",
+    ubigeo: "130101",
+    direccion: "DIRECCION DE PRUEBA"
+  },
+  categoria: "I-1",
+  estado: "PRUEBA",
+  red: {
+    disa: "PRUEBA",
+    red: "PRUEBA",
+    microred: "PRUEBA"
+  },
+  geolocalizacion: {
+    norte: null,
+    este: null
+  }
+})
+
+//READ 
+db.renipress.findOne({
+  codigo_ipress: "PRUEBA001"
+})
+
+//UPDATE 
+db.renipress.updateOne(
+  { codigo_ipress: "PRUEBA001" },
+  {
+    $set: {
+      nombre: "IPRESS DE PRUEBA CRUD ACTUALIZADA"
+    }
+  }
+)
+
+//Comprobamos la actualización con READ 
+db.renipress.findOne({
+  codigo_ipress: "PRUEBA001"
+})
+
+
+//DELETE 
+db.renipress.deleteOne({
+  codigo_ipress: "PRUEBA001"
+})
+
